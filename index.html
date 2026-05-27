@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>QCC Platform – 7 Langkah Improvement</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,"Times New Roman",serif;background:#100d08;color:#f0e8d8;min-height:100vh}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#1a1410}::-webkit-scrollbar-thumb{background:#3d2e18;border-radius:3px}
+input,select,textarea{outline:none;font-family:Georgia,serif}
+input:focus,select:focus{border-color:#B8860B!important}
+button{cursor:pointer;font-family:Georgia,serif}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-8px)}75%{transform:translateX(8px)}}
+.fade-in{animation:fadeIn .35s ease}
+.shake{animation:shake .4s ease}
+
+/* NAV */
+#nav{background:#0d0a06;border-bottom:1px solid #2a1f0e;padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.nav-brand-sub{font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;text-transform:uppercase}
+.nav-brand-title{font-size:13px;font-weight:700;color:#f0e8d8}
+.nav-btn{background:transparent;border:1px solid #3d2e18;color:#7a6040;padding:5px 14px;border-radius:6px;font-family:monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;transition:all .15s}
+.nav-btn.active{background:#2a1f0e;border-color:#B8860B;color:#B8860B}
+.nav-btn:hover{border-color:#B8860B;color:#B8860B}
+.user-chip{display:flex;align-items:center;gap:8px;padding:5px 12px;background:#1a1410;border-radius:6px;border:1px solid #2a1f0e}
+.user-avatar{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+
+/* TOAST */
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:10px;font-family:monospace;font-size:12px;box-shadow:0 4px 20px rgba(0,0,0,.5);transform:translateY(60px);opacity:0;transition:all .3s;pointer-events:none}
+#toast.show{transform:translateY(0);opacity:1}
+
+/* MODAL OVERLAY */
+.modal-overlay{position:fixed;inset:0;background:rgba(5,4,2,.9);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-box{background:#120f0a;border:1px solid #3d2e18;border-radius:16px;width:100%;max-width:440px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.8);animation:fadeIn .2s ease}
+.modal-header{background:#0d0a06;padding:18px 24px;border-bottom:1px solid #2a1f0e;display:flex;align-items:center;justify-content:space-between}
+.modal-body{padding:24px}
+.modal-footer{display:flex;gap:10px;margin-top:4px}
+
+/* FORM ELEMENTS */
+.form-label{font-family:monospace;font-size:9px;color:#5a4a30;letter-spacing:1.5px;text-transform:uppercase;display:block;margin-bottom:5px}
+.form-input{width:100%;background:#1a1410;border:1.5px solid #3d2e18;border-radius:7px;padding:9px 12px;color:#f0e8d8;font-size:12px;font-family:Georgia,serif;transition:border-color .15s}
+.form-input.mono{font-family:monospace;letter-spacing:2px}
+.form-group{margin-bottom:13px}
+.btn{border:none;border-radius:8px;padding:10px 20px;font-family:monospace;font-size:10px;letter-spacing:1.5px;font-weight:700;transition:all .2s}
+.btn-gold{background:linear-gradient(135deg,#B8860B,#D4A017);color:#0d0a06}
+.btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(184,134,11,.4)}
+.btn-ghost{background:transparent;border:1px solid #3d2e18;color:#7a6040}
+.btn-ghost:hover{border-color:#B8860B;color:#B8860B}
+.btn-red{background:linear-gradient(135deg,#B22222,#8a1a1a);color:#fff}
+.btn-danger{background:transparent;border:1px solid #4a1818;color:#c05050}
+.btn-danger:hover{background:#2a1010;border-color:#B22222}
+.btn-edit{background:#1a1a0a;border:1px solid #4a4a18;color:#c0c050;font-size:9px}
+.btn-edit:hover{background:#2a2a10;border-color:#B8860B}
+.btn-full{width:100%}
+.btn-lg{padding:12px 20px;font-size:11px}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none!important}
+
+/* LOGIN */
+#login-screen{min-height:100vh;background:radial-gradient(ellipse at 30% 20%,#1a1005,#080604 60%,#050810);display:flex;align-items:center;justify-content:center}
+.login-card{width:100%;max-width:420px;margin:20px}
+.login-header{background:linear-gradient(135deg,#1a1207,#0d1520);padding:22px 32px 18px;border-bottom:1px solid #2a1f0e}
+.login-card-body{background:#120f0a;border:1px solid #2a1f0e;border-radius:16px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.7)}
+.pw-wrap{position:relative}
+.pw-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:transparent;border:none;color:#5a4a30;font-size:16px;padding:2px;line-height:1}
+.pw-strength{height:3px;background:#1a1410;border-radius:2px;overflow:hidden;margin-top:5px}
+.pw-strength-bar{height:3px;border-radius:2px;transition:width .3s,background .3s;width:0}
+.error-box{background:#2a0a0a;border:1px solid #7a1a1a;border-radius:8px;padding:10px 14px;color:#ff8080;font-family:monospace;font-size:10px;margin-bottom:14px;line-height:1.5}
+.tips-box{background:#0a1a12;border:1px solid #1a3a22;border-radius:8px;padding:10px 14px;font-family:monospace;font-size:9px;color:#4a8a5a;margin-bottom:14px;line-height:1.7}
+
+/* DASHBOARD */
+#dashboard{max-width:1100px;margin:0 auto;padding:28px 20px}
+.page-label{font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;margin-bottom:6px}
+.page-title{font-size:22px;font-weight:700;color:#f0e8d8;margin-bottom:4px}
+.page-sub{color:#7a6040;font-size:13px}
+.project-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px;margin-top:24px}
+.project-card{background:#120f0a;border:1px solid #2a1f0e;border-radius:13px;overflow:hidden;transition:all .2s;cursor:pointer}
+.project-card:hover{border-color:#B8860B;transform:translateY(-2px)}
+.proj-progress-bar{height:3px;background:#1a1410}
+.proj-progress-fill{height:3px;transition:width .4s}
+.proj-body{padding:16px 18px}
+.proj-name{font-size:14px;font-weight:700;color:#f0e8d8;margin-bottom:6px;line-height:1.3}
+.proj-meta{font-family:monospace;font-size:9px;color:#5a4a30;margin-bottom:10px}
+.proj-dots{display:flex;gap:4px;margin-bottom:12px}
+.proj-dot{flex:1;height:5px;border-radius:3px;transition:background .3s}
+.tag{display:inline-block;padding:2px 8px;border-radius:10px;font-family:monospace;font-size:9px;margin:2px}
+.tag-teal{background:#1A7A6E22;color:#1A7A6E;border:1px solid #1A7A6E44}
+.tag-gold{background:#B8860B22;color:#B8860B;border:1px solid #B8860B44}
+.tag-green{background:#22563022;color:#1A7A6E;border:1px solid #1A7A6E55}
+
+/* EDITOR */
+#editor{max-width:1100px;margin:0 auto;padding:24px 20px}
+.editor-grid{display:grid;grid-template-columns:200px 1fr;gap:18px}
+.sidebar{display:flex;flex-direction:column;gap:4px}
+.step-btn{display:flex;align-items:center;gap:8px;width:100%;padding:9px 10px;border-radius:8px;border:1px solid transparent;background:transparent;color:#5a4a30;text-align:left;transition:all .15s;font-family:Georgia,serif}
+.step-btn:hover{background:#1a1410}
+.step-btn.active{border-color:var(--sc);background:var(--sbg);color:var(--sc)}
+.step-btn-num{font-family:monospace;font-size:8px;letter-spacing:1px;display:block}
+.step-btn-name{font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.step-btn.active .step-btn-name{color:#f0e8d8}
+.step-header{display:flex;gap:14px;align-items:flex-start;padding:16px 20px;border-radius:0 10px 10px 0;border-left:4px solid;margin-bottom:18px}
+.step-bab{font-family:monospace;font-size:9px;letter-spacing:3px;margin-bottom:3px}
+.step-title-text{font-size:18px;font-weight:700;color:#f0e8d8}
+.sub-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.sub-tag{padding:1px 9px;border-radius:10px;font-family:monospace;font-size:9px;border:1px solid}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel{background:#120f0a;border:1px solid #2a1f0e;border-radius:12px;padding:18px}
+.panel-label{font-family:monospace;font-size:9px;letter-spacing:2px;color:#5a4a30;text-transform:uppercase;margin-bottom:14px}
+.narasi-text{font-size:12px;line-height:1.85;color:#c0a870;font-style:italic}
+.chart-wrap{height:180px;position:relative}
+.progress-wrap{margin-top:14px;padding:12px;background:#120f0a;border-radius:8px;border:1px solid #2a1f0e}
+.prog-bar-bg{background:#1a1410;border-radius:3px;height:4px}
+.prog-bar-fill{height:4px;border-radius:3px;background:linear-gradient(90deg,#B8860B,#1A7A6E);transition:width .4s}
+
+/* ADMIN */
+#admin-view{max-width:1000px;margin:0 auto;padding:28px 20px}
+.tab-bar{display:flex;gap:8px;margin-bottom:24px}
+.tab-btn{background:transparent;border:1px solid #2a1f0e;border-radius:7px;padding:7px 18px;color:#5a4a30;font-family:monospace;font-size:10px;letter-spacing:1.5px;text-transform:uppercase;transition:all .15s}
+.tab-btn.active{background:#1a1407;border-color:#B8860B;color:#B8860B}
+.user-table{background:#120f0a;border:1px solid #2a1f0e;border-radius:12px;overflow:hidden}
+.user-table-head{display:grid;grid-template-columns:2fr 100px 70px 100px 160px;background:#0d0a06;padding:10px 16px;font-family:monospace;font-size:9px;color:#5a4a30;letter-spacing:2px;gap:8px;border-bottom:1px solid #2a1f0e}
+.user-row{display:grid;grid-template-columns:2fr 100px 70px 100px 160px;padding:11px 16px;border-top:1px solid #1a1410;align-items:center;gap:8px;transition:background .15s}
+.user-row:hover{background:#161208}
+.user-avatar-lg{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0}
+.badge{display:inline-block;padding:2px 10px;border-radius:10px;font-family:monospace;font-size:9px}
+.badge-admin{background:#1a1207;color:#B8860B;border:1px solid #B8860B44}
+.badge-user{background:#071a12;color:#1A7A6E;border:1px solid #1A7A6E44}
+.stat-card{background:#120f0a;border-radius:12px;padding:20px 22px}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.stat-num{font-size:32px;font-weight:700;font-family:monospace;line-height:1}
+.stat-label{font-size:12px;color:#7a6040;margin-top:4px}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#5a4a30;font-size:13px}
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.role-picker{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.role-option{padding:10px 12px;border-radius:8px;border:1.5px solid #2a1f0e;background:transparent;cursor:pointer;transition:all .15s;text-align:left}
+.role-option.selected{border-color:#B8860B;background:#1a1407}
+.role-option-label{font-size:12px;font-weight:700;color:#7a6040}
+.role-option.selected .role-option-label{color:#B8860B}
+.role-option-desc{font-family:monospace;font-size:9px;color:#5a4a30;margin-top:2px}
+.divider{height:1px;background:#1a1410;margin:14px 0}
+.pw-match{font-family:monospace;font-size:9px;margin-top:4px}
+.confirm-user-box{display:flex;align-items:center;gap:12px;background:#1a0f0f;border:1px solid #3a1a1a;border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.legend{display:flex;gap:16px;margin-top:12px;flex-wrap:wrap}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}
+.empty-state{text-align:center;padding:60px 20px;color:#3d2e18}
+.empty-icon{font-size:40px;margin-bottom:12px}
+
+@media(max-width:700px){
+  .editor-grid{grid-template-columns:1fr}
+  .two-col{grid-template-columns:1fr}
+  .user-table-head,.user-row{grid-template-columns:1fr 80px 100px}
+  .user-table-head > *:nth-child(3),
+  .user-table-head > *:nth-child(4),
+  .user-row > *:nth-child(3),
+  .user-row > *:nth-child(4){display:none}
+}
+
+/* ── PDF PRINT STYLES ── */
+#pdf-preview-overlay {
+  position:fixed;inset:0;background:rgba(5,4,2,.95);z-index:500;
+  overflow-y:auto;padding:20px;display:none;
+}
+#pdf-preview-overlay.show { display:block; }
+#pdf-doc {
+  max-width:800px;margin:0 auto;background:#fff;color:#1a1209;
+  border-radius:8px;overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5);
+  font-family:Georgia,"Times New Roman",serif;
+}
+.pdf-close-bar {
+  position:sticky;top:0;background:#1a2744;padding:12px 20px;
+  display:flex;align-items:center;justify-content:space-between;gap:12px;z-index:10;
+}
+@media print {
+  body > *:not(#pdf-preview-overlay) { display:none!important; }
+  #pdf-preview-overlay {
+    position:static!important;background:white!important;
+    padding:0!important;overflow:visible!important;display:block!important;
+  }
+  .pdf-close-bar { display:none!important; }
+  #pdf-doc { box-shadow:none!important;border-radius:0!important;max-width:100%!important; }
+  @page { margin:15mm; size:A4; }
+}
+</style>
+</head>
+<body>
+
+<!-- NAV (hidden until logged in) -->
+<nav id="nav" style="display:none">
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:20px">⚙️</span>
+    <div>
+      <div class="nav-brand-sub">QCC Platform</div>
+      <div class="nav-brand-title">7 Langkah Improvement</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px" id="nav-right"></div>
+</nav>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- PAGES -->
+<div id="login-screen"></div>
+<div id="dashboard" style="display:none"></div>
+<div id="editor" style="display:none"></div>
+<div id="admin-view" style="display:none"></div>
+
+<!-- PDF PREVIEW OVERLAY -->
+<div id="pdf-preview-overlay">
+  <div id="pdf-doc"></div>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal-box" id="modal-box"></div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA & CONFIG
+// ═══════════════════════════════════════════════════
+const KEYS = {users:'qcc_users', session:'qcc_session', projects:'qcc_projects'};
+const STEP_COLORS = ['#B8860B','#B22222','#6B3FA0','#1A4FA0','#1A7A6E','#C05C1A','#1A7A9A'];
+const STEPS = [
+  {id:1,icon:'🎯',color:'#B8860B',title:'Menentukan Tema & Judul',
+   subs:['1.1 Menentukan Tema','1.2 Menentukan Judul','1.3 Menentukan Initial Goal'],
+   chartType:'gap',
+   fields:[
+    {key:'tema',label:'Tema Improvement',type:'text',ph:'Contoh: Menghilangkan Belt Conveyor Putus'},
+    {key:'judul',label:'Judul Makalah',type:'text',ph:'Contoh: Upaya Menghilangkan Belt Putus dari 18→0/bln'},
+    {key:'baseline',label:'Baseline (Kondisi Awal)',type:'text',ph:'Contoh: 18 kejadian/bulan'},
+    {key:'goal',label:'Initial Goal / Target',type:'text',ph:'Contoh: 0 kejadian/bulan'},
+    {key:'area',label:'Area / Departemen',type:'text',ph:'Contoh: Seksi Conveyor – Produksi'},
+    {key:'periode',label:'Periode',type:'text',ph:'Contoh: Januari – Juni 2025'},
+    {key:'baselineNum',label:'Nilai Baseline (angka)',type:'number',ph:'18'},
+    {key:'goalNum',label:'Nilai Target (angka)',type:'number',ph:'0'},
+   ]},
+  {id:2,icon:'🔍',color:'#B22222',title:'Menganalisa Penyebab',chartType:'pareto',
+   fields:[
+    {key:'p1',label:'Penyebab 1',type:'text',ph:'Contoh: Tegangan belt tidak standar'},
+    {key:'f1',label:'Frekuensi 1',type:'number',ph:'42'},
+    {key:'p2',label:'Penyebab 2',type:'text',ph:'Contoh: Belt aus tidak diganti'},
+    {key:'f2',label:'Frekuensi 2',type:'number',ph:'31'},
+    {key:'p3',label:'Penyebab 3',type:'text',ph:'Contoh: Overload'},
+    {key:'f3',label:'Frekuensi 3',type:'number',ph:'18'},
+    {key:'p4',label:'Penyebab 4',type:'text',ph:'Contoh: Sambungan tidak presisi'},
+    {key:'f4',label:'Frekuensi 4',type:'number',ph:'9'},
+   ]},
+  {id:3,icon:'🧪',color:'#6B3FA0',title:'Menguji Penyebab Dominan',chartType:'radar',
+   fields:[
+    {key:'d1',label:'Penyebab Dominan 1',type:'text',ph:'Contoh: Tegangan belt'},
+    {key:'k1',label:'Korelasi 1 (0-100)',type:'number',ph:'94'},
+    {key:'d2',label:'Penyebab Dominan 2',type:'text',ph:'Contoh: Belt aus'},
+    {key:'k2',label:'Korelasi 2',type:'number',ph:'82'},
+    {key:'d3',label:'Penyebab Dominan 3',type:'text',ph:'Contoh: Overload'},
+    {key:'k3',label:'Korelasi 3',type:'number',ph:'67'},
+    {key:'metode',label:'Metode Pengujian',type:'text',ph:'Contoh: Scatter Diagram & Pearson'},
+   ]},
+  {id:4,icon:'🛠️',color:'#1A4FA0',title:'Rencana & Perbaikan',chartType:'progress',
+   fields:[
+    {key:'a1',label:'Aksi Perbaikan 1',type:'text',ph:'Contoh: Kalibrasi tensioner belt'},
+    {key:'pr1',label:'Progress Aksi 1 (%)',type:'number',ph:'100'},
+    {key:'a2',label:'Aksi Perbaikan 2',type:'text',ph:'Contoh: Penggantian belt terjadwal'},
+    {key:'pr2',label:'Progress Aksi 2 (%)',type:'number',ph:'100'},
+    {key:'a3',label:'Aksi Perbaikan 3',type:'text',ph:'Contoh: Pasang sensor overload'},
+    {key:'pr3',label:'Progress Aksi 3 (%)',type:'number',ph:'90'},
+    {key:'pic',label:'PIC / Tim Pelaksana',type:'text',ph:'Contoh: Tim QCC & Maintenance'},
+   ]},
+  {id:5,icon:'📊',color:'#1A7A6E',title:'Meneliti Hasil',chartType:'comparison',
+   fields:[
+    {key:'sb1',label:'Bulan 1 – Sebelum',type:'number',ph:'18'},{key:'ss1',label:'Bulan 1 – Sesudah',type:'number',ph:'9'},
+    {key:'sb2',label:'Bulan 2 – Sebelum',type:'number',ph:'16'},{key:'ss2',label:'Bulan 2 – Sesudah',type:'number',ph:'4'},
+    {key:'sb3',label:'Bulan 3 – Sebelum',type:'number',ph:'17'},{key:'ss3',label:'Bulan 3 – Sesudah',type:'number',ph:'0'},
+    {key:'pencapaian',label:'Pencapaian Akhir (%)',type:'number',ph:'100'},
+   ]},
+  {id:6,icon:'📋',color:'#C05C1A',title:'Membuat Standar Baru',chartType:'pie',
+   fields:[
+    {key:'sop1',label:'Standar Baru 1',type:'text',ph:'Contoh: SOP Kalibrasi Tensioner'},
+    {key:'e1',label:'Efektivitas SOP 1 (%)',type:'number',ph:'96'},
+    {key:'sop2',label:'Standar Baru 2',type:'text',ph:'Contoh: SOP Penggantian Belt'},
+    {key:'e2',label:'Efektivitas SOP 2 (%)',type:'number',ph:'91'},
+    {key:'sop3',label:'Standar Baru 3',type:'text',ph:'Contoh: SOP Pengecekan Beban'},
+    {key:'e3',label:'Efektivitas SOP 3 (%)',type:'number',ph:'85'},
+    {key:'status',label:'Status Implementasi',type:'text',ph:'Contoh: Disosialisasikan ke 3 shift'},
+   ]},
+  {id:7,icon:'🚀',color:'#1A7A9A',title:'Tema Berikutnya',chartType:'ranking',
+   fields:[
+    {key:'tema_next',label:'Tema Terpilih Berikutnya',type:'text',ph:'Contoh: Mengurangi Downtime Mesin Packing'},
+    {key:'t1',label:'Kandidat Tema 1',type:'text',ph:'Contoh: Downtime Mesin Packing'},
+    {key:'s1',label:'Skor Kandidat 1',type:'number',ph:'88'},
+    {key:'t2',label:'Kandidat Tema 2',type:'text',ph:'Contoh: Efisiensi Energi Motor'},
+    {key:'s2',label:'Skor Kandidat 2',type:'number',ph:'74'},
+    {key:'t3',label:'Kandidat Tema 3',type:'text',ph:'Contoh: Reject Rate Produk'},
+    {key:'s3',label:'Skor Kandidat 3',type:'number',ph:'63'},
+    {key:'target_next',label:'Target Goal Berikutnya',type:'text',ph:'Contoh: 90% penurunan downtime'},
+   ]},
+];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let STATE = {
+  session: null,
+  users: [],
+  projects: [],
+  activeProject: null,
+  activeStep: 1,
+  view: 'login', // login|dashboard|editor|admin
+  charts: {},
+};
+
+function load(k,fb){try{const v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch{return fb;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch{}}
+
+function initState(){
+  STATE.users = load(KEYS.users, null);
+  if(!STATE.users){
+    STATE.users = [{id:'admin',name:'Administrator',username:'admin',password:'Admin123!',role:'admin',createdAt:new Date().toISOString()}];
+    save(KEYS.users, STATE.users);
+  }
+  STATE.projects = load(KEYS.projects, []);
+  STATE.session = load(KEYS.session, null);
+}
+
+// ═══════════════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════════════
+let toastTimer;
+function showToast(msg, type='success'){
+  const t = document.getElementById('toast');
+  t.textContent = (type==='error'?'❌ ':'✓ ') + msg;
+  t.style.background = type==='error'?'#7a1a1a':'#1a4a2e';
+  t.style.color = '#fff';
+  t.style.border = '1px solid '+(type==='error'?'#B22222':'#1A7A6E');
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+// ═══════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════
+function openModal(html){ document.getElementById('modal-box').innerHTML=html; document.getElementById('modal-overlay').style.display='flex'; }
+function closeModal(){ document.getElementById('modal-overlay').style.display='none'; }
+
+// ═══════════════════════════════════════════════════
+// ROUTER
+// ═══════════════════════════════════════════════════
+function navigate(view){
+  STATE.view = view;
+  ['login-screen','dashboard','editor','admin-view'].forEach(id=>{
+    document.getElementById(id).style.display = 'none';
+  });
+  document.getElementById('nav').style.display = view==='login'?'none':'flex';
+  if(view==='login'){ renderLogin(); document.getElementById('login-screen').style.display='flex'; }
+  else if(view==='dashboard'){ renderDashboard(); document.getElementById('dashboard').style.display='block'; }
+  else if(view==='editor'){ renderEditor(); document.getElementById('editor').style.display='block'; }
+  else if(view==='admin'){ renderAdmin(); document.getElementById('admin-view').style.display='block'; }
+  renderNav();
+}
+
+// ═══════════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════════
+function renderNav(){
+  if(!STATE.session) return;
+  const s = STATE.session;
+  const isAdmin = s.role==='admin';
+  const ac = STEP_COLORS[s.id.charCodeAt(0)%7];
+  document.getElementById('nav-right').innerHTML = `
+    ${isAdmin?`<button class="nav-btn ${STATE.view==='dashboard'?'active':''}" onclick="navigate('dashboard')">📋 Proyek</button>
+    <button class="nav-btn ${STATE.view==='admin'?'active':''}" onclick="navigate('admin')">👑 Admin</button>`
+    :`<button class="nav-btn ${STATE.view==='dashboard'?'active':''}" onclick="navigate('dashboard')">📋 Proyek</button>`}
+    <div class="user-chip">
+      <div class="user-avatar" style="background:${ac}22;border:1px solid ${ac};color:${ac}">${s.name.charAt(0).toUpperCase()}</div>
+      <div>
+        <div style="font-size:11px;color:#f0e8d8;font-weight:600">${s.name}</div>
+        <div style="font-family:monospace;font-size:9px;color:${isAdmin?'#B8860B':'#1A7A6E'}">${isAdmin?'ADMIN':'USER'}</div>
+      </div>
+      <button onclick="doLogout()" style="background:transparent;border:none;color:#7a6040;font-size:14px;padding:0 0 0 6px" title="Logout">🚪</button>
+    </div>`;
+}
+
+function doLogout(){
+  STATE.session = null;
+  save(KEYS.session, null);
+  navigate('login');
+}
+
+// ═══════════════════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════════════════
+function renderLogin(){
+  document.getElementById('login-screen').innerHTML = `
+  <div class="login-card fade-in">
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:52px;margin-bottom:10px">⚙️</div>
+      <div style="font-family:monospace;font-size:9px;letter-spacing:5px;color:#B8860B;text-transform:uppercase;margin-bottom:6px">QCC Platform</div>
+      <div style="font-size:22px;font-weight:700;color:#f0e8d8">7 Langkah Improvement</div>
+      <div style="font-size:12px;color:#7a6040;margin-top:4px">Sistem Manajemen Makalah QCC</div>
+    </div>
+    <div class="login-card-body">
+      <div class="login-header">
+        <div style="font-family:monospace;font-size:10px;color:#B8860B;letter-spacing:2px;margin-bottom:4px">MASUK KE SISTEM</div>
+        <div style="font-size:13px;color:#c0a870">Gunakan akun yang diberikan administrator</div>
+      </div>
+      <div style="padding:24px 28px 28px">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input id="l-user" class="form-input" placeholder="Masukkan username" autocomplete="username"
+            onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+        <div class="form-group">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+            <label class="form-label" style="margin-bottom:0">Password</label>
+            <button onclick="togglePw()" style="background:transparent;border:none;color:#5a4a30;font-family:monospace;font-size:9px;letter-spacing:1px" id="pw-toggle-btn">👁 TAMPILKAN</button>
+          </div>
+          <div class="pw-wrap">
+            <input id="l-pass" class="form-input mono" type="password" placeholder="••••••••" autocomplete="current-password"
+              oninput="updatePwStrength()" onkeydown="if(event.key==='Enter')doLogin()" style="padding-right:40px"/>
+            <button class="pw-toggle" onclick="togglePw()">👁</button>
+          </div>
+          <div class="pw-strength"><div class="pw-strength-bar" id="pw-strength-bar"></div></div>
+        </div>
+        <div id="login-err" style="display:none" class="error-box"></div>
+        <div id="login-tips" style="display:none" class="tips-box">
+          <div style="color:#1A7A6E;margin-bottom:4px;font-size:10px">💡 TIPS LOGIN:</div>
+          • Pastikan tidak ada spasi di awal/akhir username<br>
+          • Password bersifat case-sensitive (A≠a)<br>
+          • Gunakan tombol 👁 untuk melihat password<br>
+          • Admin default: <strong style="color:#c0a870">admin</strong> / <strong style="color:#c0a870">Admin123!</strong>
+        </div>
+        <button class="btn btn-gold btn-full btn-lg" onclick="doLogin()" id="login-btn">🔓 MASUK</button>
+        <div style="text-align:center;margin-top:14px;font-family:monospace;font-size:9px;color:#3d2e18">Tidak punya akun? Minta link sinkronisasi dari administrator</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+let pwVisible = false;
+function togglePw(){
+  pwVisible = !pwVisible;
+  const inp = document.getElementById('l-pass');
+  const btn = document.getElementById('pw-toggle-btn');
+  if(inp){ inp.type = pwVisible?'text':'password'; inp.style.fontFamily = pwVisible?'Georgia,serif':'monospace'; inp.style.letterSpacing = pwVisible?'normal':'2px'; }
+  if(btn) btn.textContent = pwVisible?'🙈 SEMBUNYIKAN':'👁 TAMPILKAN';
+  const eye = inp?.parentElement?.querySelector('.pw-toggle');
+  if(eye) eye.textContent = pwVisible?'🙈':'👁';
+}
+function updatePwStrength(){
+  const v = document.getElementById('l-pass')?.value||'';
+  const bar = document.getElementById('pw-strength-bar');
+  if(!bar) return;
+  const w = v.length>=8?'100%':v.length>=4?'60%':v.length>0?'30%':'0';
+  const c = v.length>=8?'#1A7A6E':v.length>=4?'#B8860B':'#B22222';
+  bar.style.width=w; bar.style.background=c;
+}
+
+let loginAttempts = 0;
+function doLogin(){
+  const username = (document.getElementById('l-user')?.value||'').trim();
+  const password = document.getElementById('l-pass')?.value||'';
+  const errEl = document.getElementById('login-err');
+  const tipsEl = document.getElementById('login-tips');
+  const btnEl = document.getElementById('login-btn');
+  if(!username||!password){ showErr('Username dan password wajib diisi.'); return; }
+  // Always read fresh from localStorage
+  const freshUsers = load(KEYS.users, []);
+  const user = freshUsers.find(u=>u.username===username && u.password===password);
+  if(user){
+    loginAttempts=0;
+    STATE.session = user;
+    save(KEYS.session, user);
+    STATE.users = freshUsers;
+    navigate('dashboard');
+    showToast('Selamat datang, '+user.name+'!');
+  } else {
+    loginAttempts++;
+    document.getElementById('l-pass').value='';
+    pwVisible=false;
+    const inp=document.getElementById('l-pass');
+    if(inp){inp.type='password';inp.style.fontFamily='monospace';inp.style.letterSpacing='2px';}
+    if(loginAttempts>=5){
+      showErr('Terlalu banyak percobaan gagal. Hubungi administrator.');
+      if(btnEl){btnEl.disabled=true;btnEl.textContent='🔒 TERKUNCI';}
+    } else {
+      showErr('Username atau password salah. Sisa percobaan: '+(5-loginAttempts));
+      if(tipsEl) tipsEl.style.display='block';
+    }
+    const card = document.querySelector('.login-card-body');
+    if(card){card.classList.add('shake');setTimeout(()=>card.classList.remove('shake'),500);}
+  }
+  function showErr(msg){if(errEl){errEl.textContent=msg;errEl.style.display='block';}}
+}
+
+// ═══════════════════════════════════════════════════
+// DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDashboard(){
+  const s = STATE.session;
+  const isAdmin = s.role==='admin';
+  const projs = isAdmin ? STATE.projects : STATE.projects.filter(p=>p.assignedTo?.includes(s.id)||p.createdBy===s.id);
+  const el = document.getElementById('dashboard');
+
+  let cards = projs.map(p=>{
+    const done = Object.keys(p.content||{}).length;
+    const owner = STATE.users.find(u=>u.id===p.createdBy);
+    const assigned = (p.assignedTo||[]).map(id=>STATE.users.find(u=>u.id===id)?.name).filter(Boolean);
+    const pct = (done/7*100).toFixed(0);
+    const dots = STEPS.map((st,i)=>`<div class="proj-dot" style="background:${p.content?.[st.id]?STEP_COLORS[i]:'#2a1f0e'}"></div>`).join('');
+    const tags = assigned.map(n=>`<span class="tag tag-teal">👤 ${n}</span>`).join('');
+    return `
+    <div class="project-card" onclick="openProject('${p.id}')">
+      <div class="proj-progress-bar"><div class="proj-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${STEP_COLORS[0]},${STEP_COLORS[4]})"></div></div>
+      <div class="proj-body">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+          <div class="proj-name">${p.name}</div>
+          <span class="tag tag-gold" style="flex-shrink:0;margin-left:6px">${done}/7 BAB</span>
+        </div>
+        <div class="proj-meta">Dibuat: ${new Date(p.createdAt).toLocaleDateString('id-ID')} · ${owner?.name||'?'}</div>
+        ${tags?`<div style="margin-bottom:8px">${tags}</div>`:''}
+        <div class="proj-dots">${dots}</div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-gold btn-full" style="font-size:10px;padding:8px" onclick="event.stopPropagation();openProject('${p.id}')">✏ BUKA EDITOR</button>
+          ${isAdmin?`<button onclick="event.stopPropagation();deleteProject('${p.id}')" class="btn btn-ghost" style="padding:8px 12px;font-size:12px">🗑</button>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if(!projs.length) cards = `<div class="empty-state"><div class="empty-icon">📂</div><div style="font-family:monospace;font-size:12px;letter-spacing:2px">BELUM ADA PROYEK</div><div style="font-size:13px;color:#5a4a30;margin-top:8px">${isAdmin?'Klik "+ Buat Proyek" untuk memulai':'Menunggu admin menugaskan proyek'}</div></div>`;
+
+  el.innerHTML = `
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div>
+      <div class="page-label">DASHBOARD</div>
+      <div class="page-title">Daftar Proyek Improvement</div>
+      <div class="page-sub">${isAdmin?projs.length+' proyek total':projs.length+' proyek Anda'}</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      ${!isAdmin?`<button class="btn" style="background:linear-gradient(135deg,#1A7A6E,#0f5c52);color:#fff;padding:9px 16px;font-size:10px;letter-spacing:1.5px;font-family:monospace;font-weight:700" onclick="showImportProject()">📥 IMPORT PROYEK</button>`:''}
+      <button class="btn btn-gold btn-lg" onclick="showCreateProject()">+ BUAT PROYEK</button>
+      ${isAdmin?`<button class="btn" style="background:linear-gradient(135deg,#1A7A6E,#0f5c52);color:#fff;padding:9px 16px;font-size:10px;letter-spacing:1.5px;font-family:monospace;font-weight:700" onclick="showExportProject()">🔗 BAGIKAN PROYEK</button>`:''}
+      <button class="btn" style="background:${getApiKey()?'#1a1a0a':'linear-gradient(135deg,#6B3FA0,#4a2a7a)'};border:1px solid ${getApiKey()?'#4a4a18':'#6B3FA0'};color:${getApiKey()?'#c0c050':'#fff'};padding:9px 14px;font-size:10px;letter-spacing:1.5px;font-family:monospace;font-weight:700" onclick="showApiKeyModal(0)" title="${getApiKey()?'API Key tersimpan ✓':'Setup API Key untuk Generate AI'}">🔑 ${getApiKey()?'API KEY ✓':'SETUP AI'}</button>
+    </div>
+  </div>
+  <div class="project-grid">${cards}</div>`;
+}
+
+function openProject(id){
+  STATE.activeProject = id;
+  STATE.activeStep = 1;
+  navigate('editor');
+}
+function deleteProject(id){
+  const p = STATE.projects.find(x=>x.id===id);
+  if(!p||!confirm('Hapus proyek "'+p.name+'"?')) return;
+  STATE.projects = STATE.projects.filter(x=>x.id!==id);
+  save(KEYS.projects, STATE.projects);
+  renderDashboard();
+  showToast('Proyek dihapus');
+}
+
+function showCreateProject(){
+  const isAdmin = STATE.session.role==='admin';
+  const regularUsers = STATE.users.filter(u=>u.role!=='admin');
+  const assignSection = isAdmin && regularUsers.length ? `
+    <div class="form-group"><label class="form-label">Tugaskan ke User (opsional)</label>
+      <div style="max-height:150px;overflow-y:auto;border:1px solid #2a1f0e;border-radius:7px;padding:8px">
+        ${regularUsers.map(u=>`
+        <label style="display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:5px;cursor:pointer;border:1px solid #2a1f0e;margin-bottom:4px;background:transparent" id="uchk-wrap-${u.id}">
+          <input type="checkbox" id="uchk-${u.id}" onchange="toggleAssignHighlight('${u.id}')"/>
+          <span style="color:#c0a870;font-size:12px">${u.name}</span>
+          <span style="font-family:monospace;font-size:9px;color:#5a4a30">@${u.username}</span>
+        </label>`).join('')}
+      </div>
+    </div>` : '';
+
+  openModal(`
+    <div class="modal-header">
+      <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;margin-bottom:2px">BUAT PROYEK BARU</div>
+      <div style="font-size:14px;font-weight:700;color:#f0e8d8">Proyek Improvement</div></div>
+      <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Nama Proyek</label>
+        <input id="new-proj-name" class="form-input" placeholder="Contoh: QCC Belt Conveyor 2025" onkeydown="if(event.key==='Enter')doCreateProject()"/></div>
+      ${assignSection}
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+        <button class="btn btn-gold btn-full btn-lg" onclick="doCreateProject()">✓ BUAT PROYEK</button>
+      </div>
+    </div>`);
+  setTimeout(()=>document.getElementById('new-proj-name')?.focus(),100);
+}
+function toggleAssignHighlight(uid){
+  const chk = document.getElementById('uchk-'+uid);
+  const wrap = document.getElementById('uchk-wrap-'+uid);
+  if(wrap) wrap.style.background = chk?.checked?'#1a1407':'transparent';
+}
+function doCreateProject(){
+  const name = (document.getElementById('new-proj-name')?.value||'').trim();
+  if(!name){showToast('Nama proyek wajib diisi','error');return;}
+  const assignedTo = STATE.users.filter(u=>u.role!=='admin'&&document.getElementById('uchk-'+u.id)?.checked).map(u=>u.id);
+  const proj = {id:Date.now().toString(),name,assignedTo,createdBy:STATE.session.id,createdAt:new Date().toISOString(),steps:{},content:{}};
+  STATE.projects.push(proj);
+  save(KEYS.projects, STATE.projects);
+  closeModal();
+  renderDashboard();
+  showToast('Proyek "'+name+'" berhasil dibuat');
+}
+
+// ═══════════════════════════════════════════════════
+// EDITOR
+// ═══════════════════════════════════════════════════
+function getProject(){ return STATE.projects.find(p=>p.id===STATE.activeProject)||{}; }
+function canEdit(){
+  const p=getProject(),s=STATE.session;
+  if(!p||!p.id) return false;
+  // Admin selalu bisa edit
+  if(s.role==='admin') return true;
+  // User bisa edit proyek yang dia buat sendiri
+  if(p.createdBy===s.id) return true;
+  // User bisa edit proyek yang ditugaskan ke dia
+  if(p.assignedTo && p.assignedTo.includes(s.id)) return true;
+  // User bisa edit proyek yang ada di localStorage mereka (sudah diimport)
+  // Jika proyek ada di STATE.projects user, berarti admin sudah memberi akses
+  return true;
+}
+
+function renderEditor(){
+  const p = getProject();
+  const step = STEPS.find(s=>s.id===STATE.activeStep);
+  const sc = step.color;
+  const isAdmin = STATE.session.role==='admin';
+  const ce = canEdit();
+  const done = Object.keys(p.content||{}).length;
+
+  // Sidebar steps
+  const sideSteps = STEPS.map(s=>{
+    const sdone = !!(p.content||{})[s.id];
+    const active = s.id===STATE.activeStep;
+    return `<button class="step-btn ${active?'active':''}" 
+      style="${active?`--sc:${s.color};--sbg:${s.color}18`:''}" 
+      onclick="goStep(${s.id})">
+      <span style="font-size:15px">${s.icon}</span>
+      <div style="flex:1;min-width:0">
+        <span class="step-btn-num">LANGKAH ${s.id}</span>
+        <span class="step-btn-name">${s.title}</span>
+      </div>
+      <span style="color:${sdone?'#1A7A6E':'#3d2e18'};font-size:13px">${sdone?'✓':'○'}</span>
+    </button>`;
+  }).join('');
+
+  // Form fields
+  const stepData = (p.steps||{})[STATE.activeStep]||{};
+  const fields = step.fields.map(f=>`
+    <div class="form-group">
+      <label class="form-label">${f.label}</label>
+      <input type="${f.type}" class="form-input" 
+        value="${(stepData[f.key]||'').toString().replace(/"/g,'&quot;')}"
+        placeholder="${f.ph}" 
+        ${ce?`oninput="updateField(${STATE.activeStep},'${f.key}',this.value)"`:' disabled style="background:#161210;border-color:#1a1410;color:#5a4a30;cursor:not-allowed"'}/>
+    </div>`).join('');
+
+  // Sub tags
+  const subTags = step.subs?step.subs.map(s=>`<span class="sub-tag" style="color:${sc};border-color:${sc}44;background:${sc}11">${s}</span>`).join(''):'';
+
+  // Narasi
+  const narasi = (p.content||{})[STATE.activeStep];
+  const narasiHtml = narasi
+    ? `<p class="narasi-text">${narasi.replace(/\n\n/g,'</p><p class="narasi-text" style="margin-top:8px">').replace(/\n/g,' ')}</p>`
+    : `<div style="text-align:center;padding:20px;color:#3d2e18;font-family:monospace;font-size:10px">${ce?'Isi data → klik Generate AI':'Belum ada konten'}</div>`;
+
+  const el = document.getElementById('editor');
+  el.innerHTML = `
+  <!-- Breadcrumb -->
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:20px;flex-wrap:wrap">
+    <button class="btn btn-ghost" style="padding:5px 12px;font-size:10px" onclick="navigate('dashboard')">← Proyek</button>
+    <span style="color:#3d2e18">›</span>
+    <span style="color:#c0a870;font-size:13px;font-weight:600;flex:1">${p.name||''}</span>
+    ${!ce?'<span style="background:#2a0a0a;color:#ff8080;border:1px solid #7a1a1a;padding:2px 10px;border-radius:10px;font-family:monospace;font-size:9px">⚠ READ ONLY</span>':''}
+    <button class="btn" style="background:linear-gradient(135deg,#1A4FA0,#0f3a7a);color:#fff;padding:6px 14px;font-size:10px;font-family:monospace;letter-spacing:1.5px;font-weight:700;white-space:nowrap" onclick="previewPDF()">👁 PREVIEW</button>
+    <button class="btn" style="background:linear-gradient(135deg,#B22222,#8a1a1a);color:#fff;padding:6px 14px;font-size:10px;font-family:monospace;letter-spacing:1.5px;font-weight:700;white-space:nowrap" onclick="printPDF()">🖨 CETAK / PDF</button>
+  </div>
+
+  <div class="editor-grid">
+    <!-- Sidebar -->
+    <div>
+      <div style="font-family:monospace;font-size:9px;letter-spacing:2px;color:#5a4a30;margin-bottom:8px">LANGKAH</div>
+      <div class="sidebar">${sideSteps}</div>
+      <div class="progress-wrap">
+        <div style="font-family:monospace;font-size:8px;color:#5a4a30;letter-spacing:2px;margin-bottom:6px">PROGRESS</div>
+        <div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${done/7*100}%"></div></div>
+        <div style="font-family:monospace;font-size:9px;color:#5a4a30;text-align:right;margin-top:4px">${done}/7 BAB</div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div>
+      <!-- Step header -->
+      <div class="step-header" style="background:${sc}10;border-color:${sc}30;border-left-color:${sc};margin-bottom:18px">
+        <span style="font-size:32px">${step.icon}</span>
+        <div>
+          <div class="step-bab" style="color:${sc}">BAB ${step.id} · LANGKAH ${step.id}</div>
+          <div class="step-title-text">${step.title}</div>
+          ${subTags?`<div class="sub-tags">${subTags}</div>`:''}
+        </div>
+      </div>
+
+      <div class="two-col">
+        <!-- Form -->
+        <div class="panel">
+          <div class="panel-label">✏ Input Data${!ce?' · (Read Only)':''}</div>
+          <div style="max-height:340px;overflow-y:auto;padding-right:4px">${fields}</div>
+          ${ce?`<button class="btn btn-full btn-lg" id="gen-btn-${step.id}" 
+            style="margin-top:12px;background:linear-gradient(135deg,${sc},${sc}bb);color:#fff;border:1px solid ${sc}"
+            onclick="generateContent(${step.id})">✨ Generate Konten AI</button>`:''}
+        </div>
+
+        <!-- Right: chart + narasi -->
+        <div style="display:flex;flex-direction:column;gap:14px">
+          <div class="panel">
+            <div class="panel-label" style="color:${sc}">📈 Grafik Statistik</div>
+            <div class="chart-wrap"><canvas id="chart-${step.id}"></canvas></div>
+          </div>
+          <div class="panel" style="flex:1">
+            <div class="panel-label">📝 Narasi AI</div>
+            <div id="narasi-box">${narasiHtml}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nav buttons -->
+      <div style="display:flex;justify-content:space-between;margin-top:16px">
+        <button class="btn btn-ghost" onclick="goStep(${STATE.activeStep-1})" ${STATE.activeStep<=1?'disabled':''}>← Langkah ${STATE.activeStep-1}</button>
+        <button class="btn" onclick="goStep(${STATE.activeStep+1})" ${STATE.activeStep>=7?'disabled':''}
+          style="background:${STATE.activeStep>=7?'#1a1410':`linear-gradient(135deg,${sc},${sc}bb)`};color:${STATE.activeStep>=7?'#3d2e18':'#fff'};border:none">
+          Langkah ${STATE.activeStep+1} →
+        </button>
+      </div>
+    </div>
+  </div>`;
+
+  // Draw chart after render
+  setTimeout(()=>drawChart(step, stepData), 80);
+}
+
+function goStep(id){
+  if(id<1||id>7) return;
+  STATE.activeStep=id;
+  // destroy old chart
+  if(STATE.charts[STATE.activeStep]){try{STATE.charts[STATE.activeStep].destroy();}catch{}}
+  renderEditor();
+}
+
+function updateField(stepId, key, value){
+  const p = STATE.projects.find(x=>x.id===STATE.activeProject);
+  if(!p) return;
+  if(!p.steps) p.steps={};
+  if(!p.steps[stepId]) p.steps[stepId]={};
+  p.steps[stepId][key]=value;
+  save(KEYS.projects, STATE.projects);
+  // Redraw chart live
+  const step = STEPS.find(s=>s.id===stepId);
+  if(step) drawChart(step, p.steps[stepId]);
+}
+
+// ═══════════════════════════════════════════════════
+// AI GENERATE
+// ═══════════════════════════════════════════════════
+const PROMPTS = {
+  1:d=>`Tulis narasi profesional BAB 1 makalah improvement. Tema: "${d.tema||'?'}". Judul: "${d.judul||'?'}". Area: ${d.area||'?'}. Periode: ${d.periode||'?'}. Baseline: ${d.baseline||'?'}. Target: ${d.goal||'?'}. Sertakan 3 sub-bahasan: 1.1 Tema, 1.2 Judul, 1.3 Initial Goal. Bahasa Indonesia formal, 200 kata, tanpa heading.`,
+  2:d=>`Tulis narasi BAB 2 "Menganalisa Penyebab". Penyebab: (1)${d.p1||'?'}:${d.f1||'?'}x, (2)${d.p2||'?'}:${d.f2||'?'}x, (3)${d.p3||'?'}:${d.f3||'?'}x, (4)${d.p4||'?'}:${d.f4||'?'}x. Jelaskan fishbone & pareto. Bahasa Indonesia formal, 200 kata.`,
+  3:d=>`Tulis narasi BAB 3 "Menguji Penyebab Dominan". Dominan: ${d.d1||'?'}(${d.k1||'?'}%), ${d.d2||'?'}(${d.k2||'?'}%), ${d.d3||'?'}(${d.k3||'?'}%). Metode: ${d.metode||'?'}. Bahasa Indonesia formal, 200 kata.`,
+  4:d=>`Tulis narasi BAB 4 "Rencana & Perbaikan". Aksi: (1)${d.a1||'?'} ${d.pr1||'?'}%, (2)${d.a2||'?'} ${d.pr2||'?'}%, (3)${d.a3||'?'} ${d.pr3||'?'}%. PIC: ${d.pic||'?'}. Bahasa Indonesia formal, 200 kata.`,
+  5:d=>`Tulis narasi BAB 5 "Meneliti Hasil". Data: Bln1 ${d.sb1||'?'}→${d.ss1||'?'}, Bln2 ${d.sb2||'?'}→${d.ss2||'?'}, Bln3 ${d.sb3||'?'}→${d.ss3||'?'}. Pencapaian ${d.pencapaian||'?'}%. Bahasa Indonesia formal, 200 kata.`,
+  6:d=>`Tulis narasi BAB 6 "Standar Baru". SOP: (1)${d.sop1||'?'} ${d.e1||'?'}%, (2)${d.sop2||'?'} ${d.e2||'?'}%, (3)${d.sop3||'?'} ${d.e3||'?'}%. Status: ${d.status||'?'}. Bahasa Indonesia formal, 200 kata.`,
+  7:d=>`Tulis narasi BAB 7 "Tema Berikutnya". Terpilih: "${d.tema_next||'?'}". Kandidat: ${d.t1||'?'}(${d.s1||'?'}), ${d.t2||'?'}(${d.s2||'?'}), ${d.t3||'?'}(${d.s3||'?'}). Target: ${d.target_next||'?'}. Bahasa Indonesia formal, 200 kata.`,
+};
+
+async function generateContent(stepId){
+  const btn = document.getElementById('gen-btn-'+stepId);
+  const narasiBox = document.getElementById('narasi-box');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Generating AI...';}
+  if(narasiBox) narasiBox.innerHTML='<div style="text-align:center;padding:20px;color:#5a4a30;font-family:monospace;font-size:10px;animation:fadeIn .3s">⏳ AI sedang menulis narasi...<br><span style="font-size:9px;color:#3d2e18;margin-top:4px;display:block">Mohon tunggu 10-30 detik</span></div>';
+
+  const p = getProject();
+  const d = (p.steps||{})[stepId]||{};
+
+  try {
+    // Anthropic API dengan header browser access
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key': getApiKey(),
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:800,
+        messages:[{role:'user',content:PROMPTS[stepId](d)}]
+      })
+    });
+
+    if(res.status===401){
+      showApiKeyModal(stepId);
+      if(btn){btn.disabled=false;btn.textContent='✨ Generate Konten AI';}
+      if(narasiBox) narasiBox.innerHTML='<div style="text-align:center;padding:20px;color:#c0a030;font-family:monospace;font-size:10px">🔑 API Key diperlukan untuk Generate AI</div>';
+      return;
+    }
+
+    const json = await res.json();
+    if(json.error){
+      throw new Error(json.error.message||'API error');
+    }
+
+    const text = json.content?.[0]?.text||'Gagal generate.';
+    if(!p.content) p.content={};
+    p.content[stepId]=text;
+    save(KEYS.projects, STATE.projects);
+
+    if(narasiBox) narasiBox.innerHTML = text.split('\n\n').map(t=>`<p class="narasi-text" style="margin-bottom:8px">${t.replace(/\n/g,' ')}</p>`).join('');
+    showToast('Konten BAB '+stepId+' berhasil di-generate');
+    renderEditor();
+
+  } catch(e){
+    const msg = e.message||'';
+    if(msg.includes('Failed to fetch')||msg.includes('NetworkError')||msg.includes('CORS')){
+      // CORS error - show manual input option
+      showManualNarasi(stepId);
+    } else {
+      showToast('Error: '+msg,'error');
+    }
+    if(btn){btn.disabled=false;btn.textContent='✨ Generate Konten AI';}
+  }
+}
+
+function getApiKey(){
+  return localStorage.getItem('qcc_apikey')||'';
+}
+
+function showApiKeyModal(stepId){
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;margin-bottom:2px">GENERATE AI</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Masukkan Anthropic API Key</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="background:#071a12;border:1px solid #1A7A6E44;border-radius:10px;padding:14px;margin-bottom:16px;font-size:11px;color:#5a8a70;line-height:1.7">
+      <div style="color:#1A7A6E;font-family:monospace;font-size:9px;letter-spacing:2px;margin-bottom:6px">💡 CARA MENDAPATKAN API KEY:</div>
+      1. Buka <strong style="color:#c0f0d0">console.anthropic.com</strong><br>
+      2. Login / daftar gratis<br>
+      3. Klik <strong style="color:#c0f0d0">API Keys</strong> → <strong style="color:#c0f0d0">Create Key</strong><br>
+      4. Salin key (dimulai dengan <code style="color:#c0a870">sk-ant-...</code>)<br>
+      5. Tempel di bawah ini → Simpan
+    </div>
+    <div class="form-group">
+      <label class="form-label">API Key</label>
+      <div class="pw-wrap">
+        <input id="apikey-input" class="form-input mono" type="password" 
+          placeholder="sk-ant-api03-..." style="padding-right:40px;font-size:11px;letter-spacing:0"
+          value="${getApiKey()}"/>
+        <button class="pw-toggle" onclick="toggleFieldPw('apikey-input',this)">👁</button>
+      </div>
+      <div style="font-family:monospace;font-size:9px;color:#5a4a30;margin-top:4px">Key disimpan hanya di browser Anda, tidak dikirim ke server manapun selain Anthropic.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-gold btn-full btn-lg" onclick="saveApiKeyAndGenerate(${stepId})">💾 SIMPAN & GENERATE</button>
+    </div>
+  </div>`);
+}
+
+function saveApiKeyAndGenerate(stepId){
+  const key = (document.getElementById('apikey-input')?.value||'').trim();
+  if(!key||!key.startsWith('sk-')){
+    showToast('API Key tidak valid. Harus dimulai dengan sk-','error');
+    return;
+  }
+  localStorage.setItem('qcc_apikey', key);
+  closeModal();
+  generateContent(stepId);
+}
+
+function showManualNarasi(stepId){
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#6B3FA0;margin-bottom:2px">INPUT MANUAL</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Tulis Narasi BAB ${stepId} Manual</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="background:#12071a;border:1px solid #6B3FA044;border-radius:10px;padding:12px;margin-bottom:14px;font-family:monospace;font-size:10px;color:#8a6ab0;line-height:1.6">
+      Generate AI memerlukan API Key Anthropic. Anda bisa menulis narasi secara manual di bawah ini, atau hubungi admin untuk mendapatkan API Key.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Narasi BAB ${stepId}</label>
+      <textarea id="manual-narasi" class="form-input" rows="6" 
+        placeholder="Tulis narasi/deskripsi untuk langkah ${stepId} di sini..."
+        style="resize:vertical;line-height:1.6;font-size:12px"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-full btn-lg" style="background:linear-gradient(135deg,#6B3FA0,#4a2a7a);color:#fff;border:none" 
+        onclick="saveManualNarasi(${stepId})">💾 SIMPAN NARASI</button>
+    </div>
+  </div>`);
+}
+
+function saveManualNarasi(stepId){
+  const text = (document.getElementById('manual-narasi')?.value||'').trim();
+  if(!text){showToast('Narasi tidak boleh kosong','error');return;}
+  const p = getProject();
+  if(!p.content) p.content={};
+  p.content[stepId]=text;
+  save(KEYS.projects, STATE.projects);
+  closeModal();
+  renderEditor();
+  showToast('Narasi BAB '+stepId+' berhasil disimpan');
+}
+
+// ═══════════════════════════════════════════════════
+// CHARTS (Chart.js)
+// ═══════════════════════════════════════════════════
+const chartDefaults = {
+  plugins:{legend:{labels:{color:'#a08060',font:{size:10}}},tooltip:{backgroundColor:'#1c1410',titleColor:'#f0e8d8',bodyColor:'#c0a870',borderColor:'#3d2e18',borderWidth:1}},
+  scales:{x:{ticks:{color:'#a08060',font:{size:10}},grid:{color:'#2a1f0e'}},y:{ticks:{color:'#a08060',font:{size:10}},grid:{color:'#2a1f0e'}}}
+};
+
+function drawChart(step, d){
+  const canvasId = 'chart-'+step.id;
+  const canvas = document.getElementById(canvasId);
+  if(!canvas) return;
+  if(STATE.charts[step.id]){try{STATE.charts[step.id].destroy();}catch{}}
+
+  const cfg = buildChartConfig(step, d||{});
+  if(!cfg) return;
+  STATE.charts[step.id] = new Chart(canvas, cfg);
+}
+
+function buildChartConfig(step, d){
+  const t = step.chartType;
+  if(t==='gap'){
+    return {type:'bar',data:{labels:['Baseline','Target'],datasets:[{data:[+d.baselineNum||18,+d.goalNum||0],backgroundColor:['#B2222288','#1A7A6E88'],borderColor:['#B22222','#1A7A6E'],borderWidth:2,borderRadius:6}]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,legend:{display:false}},scales:{x:{ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}},y:{beginAtZero:true,ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}}}}};
+  }
+  if(t==='pareto'){
+    const raw=[{n:(d.p1||'P1').substring(0,14),v:+d.f1||42},{n:(d.p2||'P2').substring(0,14),v:+d.f2||31},{n:(d.p3||'P3').substring(0,14),v:+d.f3||18},{n:(d.p4||'P4').substring(0,14),v:+d.f4||9}].sort((a,b)=>b.v-a.v);
+    const tot=raw.reduce((s,r)=>s+r.v,0);let c=0;const pct=raw.map(r=>{c+=r.v;return+(c/tot*100).toFixed(1);});
+    return {type:'bar',data:{labels:raw.map(r=>r.n),datasets:[{type:'bar',label:'Frekuensi',data:raw.map(r=>r.v),backgroundColor:'#B2222288',borderColor:'#B22222',borderWidth:2,yAxisID:'y'},{type:'line',label:'Kumulatif %',data:pct,borderColor:'#B8860B',backgroundColor:'transparent',borderWidth:2,pointRadius:4,yAxisID:'y2'}]},options:{...chartDefaults,scales:{x:{ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}},y:{beginAtZero:true,ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}},y2:{position:'right',max:110,ticks:{color:'#a08060',callback:v=>v+'%'},grid:{display:false}}}}};
+  }
+  if(t==='radar'){
+    return {type:'radar',data:{labels:[d.d1||'D1',d.d2||'D2',d.d3||'D3'],datasets:[{label:'Korelasi',data:[+d.k1||94,+d.k2||82,+d.k3||67],borderColor:'#6B3FA0',backgroundColor:'#6B3FA033',borderWidth:2,pointBackgroundColor:'#6B3FA0'}]},options:{plugins:{legend:{display:false},tooltip:{backgroundColor:'#1c1410',titleColor:'#f0e8d8',bodyColor:'#c0a870',borderColor:'#3d2e18',borderWidth:1}},scales:{r:{beginAtZero:true,max:100,ticks:{color:'#a08060',backdropColor:'transparent'},grid:{color:'#3d2e18'},pointLabels:{color:'#a08060'}}}}};
+  }
+  if(t==='progress'){
+    const labels=[(d.a1||'Aksi 1').substring(0,22),(d.a2||'Aksi 2').substring(0,22),(d.a3||'Aksi 3').substring(0,22)];
+    return {type:'bar',data:{labels,datasets:[{data:[+d.pr1||100,+d.pr2||100,+d.pr3||90],backgroundColor:'#1A4FA088',borderColor:'#1A4FA0',borderWidth:2,borderRadius:4}]},options:{...chartDefaults,indexAxis:'y',plugins:{...chartDefaults.plugins,legend:{display:false}},scales:{x:{beginAtZero:true,max:110,ticks:{color:'#a08060',callback:v=>v+'%'},grid:{color:'#2a1f0e'}},y:{ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}}}}};
+  }
+  if(t==='comparison'){
+    return {type:'bar',data:{labels:['Bulan 1','Bulan 2','Bulan 3'],datasets:[{label:'Sebelum',data:[+d.sb1||18,+d.sb2||16,+d.sb3||17],backgroundColor:'#B2222288',borderColor:'#B22222',borderWidth:2,borderRadius:4},{label:'Sesudah',data:[+d.ss1||9,+d.ss2||4,+d.ss3||0],backgroundColor:'#1A7A6E88',borderColor:'#1A7A6E',borderWidth:2,borderRadius:4}]},options:{...chartDefaults,scales:{x:{ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}},y:{beginAtZero:true,ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}}}}};
+  }
+  if(t==='pie'){
+    const labels=[(d.sop1||'SOP 1').substring(0,18),(d.sop2||'SOP 2').substring(0,18),(d.sop3||'SOP 3').substring(0,18)];
+    return {type:'doughnut',data:{labels,datasets:[{data:[+d.e1||96,+d.e2||91,+d.e3||85],backgroundColor:['#B8860Bcc','#C05C1Acc','#1A7A9Acc'],borderColor:['#B8860B','#C05C1A','#1A7A9A'],borderWidth:2}]},options:{plugins:{legend:{labels:{color:'#a08060',font:{size:10}}},tooltip:{backgroundColor:'#1c1410',titleColor:'#f0e8d8',bodyColor:'#c0a870',borderColor:'#3d2e18',borderWidth:1}}}};
+  }
+  if(t==='ranking'){
+    return {type:'bar',data:{labels:[(d.t1||'T1').substring(0,14),(d.t2||'T2').substring(0,14),(d.t3||'T3').substring(0,14)],datasets:[{data:[+d.s1||88,+d.s2||74,+d.s3||63],backgroundColor:['#1A7A9Acc','#1A4FA0cc','#6B3FA0cc'],borderColor:['#1A7A9A','#1A4FA0','#6B3FA0'],borderWidth:2,borderRadius:6}]},options:{...chartDefaults,plugins:{...chartDefaults.plugins,legend:{display:false}},scales:{x:{ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}},y:{beginAtZero:true,max:110,ticks:{color:'#a08060'},grid:{color:'#2a1f0e'}}}}};
+  }
+  return null;
+}
+
+// ═══════════════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════════════
+let adminTab = 'users';
+let adminSearch = '';
+
+function renderAdmin(){
+  const el = document.getElementById('admin-view');
+  el.innerHTML = `
+  <div class="page-label">PANEL ADMINISTRATOR</div>
+  <div class="page-title" style="margin-bottom:20px">Manajemen Pengguna & Sistem</div>
+  <div class="tab-bar">
+    <button class="tab-btn ${adminTab==='users'?'active':''}" onclick="switchAdminTab('users')">👥 Kelola User</button>
+    <button class="tab-btn ${adminTab==='stats'?'active':''}" onclick="switchAdminTab('stats')">📊 Statistik</button>
+  </div>
+  <div id="admin-tab-content"></div>`;
+  renderAdminTab();
+}
+function switchAdminTab(t){ adminTab=t; renderAdmin(); }
+
+function renderAdminTab(){
+  const el = document.getElementById('admin-tab-content');
+  if(adminTab==='users') el.innerHTML = renderUsersTab();
+  else el.innerHTML = renderStatsTab();
+}
+
+function renderUsersTab(){
+  const filtered = STATE.users.filter(u=>
+    u.name.toLowerCase().includes(adminSearch.toLowerCase())||
+    u.username.toLowerCase().includes(adminSearch.toLowerCase())
+  );
+
+  const rows = filtered.map((u,i)=>{
+    const projCount = STATE.projects.filter(p=>p.assignedTo?.includes(u.id)||p.createdBy===u.id).length;
+    const isMe = u.id===STATE.session.id;
+    const isProt = u.id==='admin';
+    const ac = STEP_COLORS[u.id.charCodeAt(0)%7];
+    return `
+    <div class="user-row" style="background:${i%2===0?'#120f0a':'#0f0c08'}">
+      <div style="display:flex;align-items:center;gap:10px;min-width:0">
+        <div class="user-avatar-lg" style="background:${ac}22;border:2px solid ${ac}55;color:${ac}">${u.name.charAt(0).toUpperCase()}</div>
+        <div style="min-width:0">
+          <div style="font-size:13px;color:#f0e8d8;font-weight:600;display:flex;align-items:center;gap:6px">
+            <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.name}</span>
+            ${isMe?'<span class="tag tag-gold" style="font-size:8px;padding:1px 6px">ANDA</span>':''}
+            ${isProt&&!isMe?'<span class="tag" style="background:#1a0d07;color:#c05c1a;border:1px solid #c05c1a44;font-size:8px;padding:1px 6px">SISTEM</span>':''}
+          </div>
+          <div style="font-family:monospace;font-size:9px;color:#5a4a30">@${u.username}</div>
+        </div>
+      </div>
+      <div><span class="badge ${u.role==='admin'?'badge-admin':'badge-user'}">${u.role==='admin'?'👑 ADMIN':'👤 USER'}</span></div>
+      <div style="font-family:monospace;font-size:11px;color:#c0a870;text-align:center">${projCount}</div>
+      <div style="font-family:monospace;font-size:9px;color:#5a4a30">${new Date(u.createdAt).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'})}</div>
+      <div style="display:flex;gap:6px;justify-content:flex-end">
+        <button class="btn btn-edit" style="padding:6px 10px" onclick="showEditUser('${u.id}')">✏ EDIT</button>
+        <button class="btn btn-danger" style="padding:6px 10px;font-size:9px;${isMe||isProt?'opacity:.3;cursor:not-allowed':''}" 
+          onclick="${isMe||isProt?'':` showDeleteUser('${u.id}')`}" ${isMe||isProt?'disabled':''}>🗑 HAPUS</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  return `
+  <div class="toolbar">
+    <div class="search-wrap"><span class="search-icon">🔍</span>
+      <input class="form-input" style="padding-left:32px" placeholder="Cari nama atau username..." 
+        value="${adminSearch}" oninput="adminSearch=this.value;renderAdminTab()"/>
+    </div>
+    <div style="font-family:monospace;font-size:10px;color:#5a4a30">${filtered.length}/${STATE.users.length} user</div>
+    <button class="btn" style="background:linear-gradient(135deg,#1A7A6E,#0f5c52);color:#fff;padding:9px 16px;font-size:10px;white-space:nowrap" onclick="generateSyncLink()">🔗 BAGIKAN AKSES</button>
+    <button class="btn btn-gold btn-lg" onclick="showAddUser()">+ TAMBAH USER</button>
+  </div>
+  <div class="user-table">
+    <div class="user-table-head">
+      <div>NAMA / USERNAME</div><div>ROLE</div><div>PROYEK</div><div>TERDAFTAR</div><div style="text-align:right">AKSI</div>
+    </div>
+    ${filtered.length?rows:`<div style="padding:32px;text-align:center;color:#3d2e18;font-family:monospace;font-size:11px">
+      ${adminSearch?'Tidak ada hasil untuk "'+adminSearch+'"':'Belum ada user'}
+    </div>`}
+  </div>
+  <div class="legend">
+    <div><span class="legend-dot" style="background:#B8860B"></span><span style="font-family:monospace;font-size:9px;color:#5a4a30">Admin – akses penuh</span></div>
+    <div><span class="legend-dot" style="background:#1A7A6E"></span><span style="font-family:monospace;font-size:9px;color:#5a4a30">User – hanya isi data</span></div>
+    <div><span class="legend-dot" style="background:#c05c1a"></span><span style="font-family:monospace;font-size:9px;color:#5a4a30">Akun sistem – tidak bisa dihapus</span></div>
+  </div>`;
+}
+
+function renderStatsTab(){
+  const stats = [
+    {label:'Total Proyek',value:STATE.projects.length,icon:'📁',color:'#B8860B'},
+    {label:'Total User',value:STATE.users.length,icon:'👥',color:'#1A7A6E'},
+    {label:'Proyek Selesai (7 BAB)',value:STATE.projects.filter(p=>Object.keys(p.content||{}).length===7).length,icon:'✅',color:'#1A4FA0'},
+    {label:'BAB Ter-generate',value:STATE.projects.reduce((s,p)=>s+Object.keys(p.content||{}).length,0),icon:'📝',color:'#6B3FA0'},
+  ];
+  const cards = stats.map(s=>`<div class="stat-card" style="border:1px solid ${s.color}33"><div style="font-size:28px;margin-bottom:8px">${s.icon}</div><div class="stat-num" style="color:${s.color}">${s.value}</div><div class="stat-label">${s.label}</div></div>`).join('');
+  const projRows = STATE.projects.map(p=>{
+    const done=Object.keys(p.content||{}).length;
+    const dots=STEPS.map((s,i)=>`<div style="width:12px;height:12px;border-radius:3px;background:${p.content?.[s.id]?STEP_COLORS[i]:'#2a1f0e'}"></div>`).join('');
+    return `<div style="display:flex;align-items:center;gap:12px"><div style="flex:1;font-size:12px;color:#c0a870">${p.name}</div><div style="display:flex;gap:3px">${dots}</div><div style="font-family:monospace;font-size:10px;color:#5a4a30;min-width:32px">${done}/7</div></div>`;
+  }).join('');
+  return `
+  <div class="stat-grid">${cards}</div>
+  <div class="panel" style="margin-top:14px">
+    <div class="panel-label">Ringkasan Proyek</div>
+    ${STATE.projects.length?`<div style="display:flex;flex-direction:column;gap:10px">${projRows}</div>`:'<div style="color:#3d2e18;font-family:monospace;font-size:11px">Belum ada proyek</div>'}
+  </div>`;
+}
+
+// ── Add User ──
+function showAddUser(){
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;margin-bottom:2px">TAMBAH USER BARU</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Buat Akun Pengguna</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group"><label class="form-label">Nama Lengkap</label><input id="au-name" class="form-input" placeholder="Contoh: Budi Santoso"/></div>
+    <div class="form-group"><label class="form-label">Username</label><input id="au-user" class="form-input mono" placeholder="Contoh: budi.santoso"/></div>
+    <div class="form-group"><label class="form-label">Password</label>
+      <div class="pw-wrap"><input id="au-pass" class="form-input mono" type="password" placeholder="Min. 4 karakter" style="padding-right:40px"/>
+      <button class="pw-toggle" onclick="toggleFieldPw('au-pass',this)">👁</button></div></div>
+    <div class="form-group"><label class="form-label">Role / Hak Akses</label>
+      <div class="role-picker">
+        <div class="role-option selected" id="role-user" onclick="selectRole('user')">
+          <div class="role-option-label">👤 User</div><div class="role-option-desc">Hanya isi data</div>
+        </div>
+        <div class="role-option" id="role-admin" onclick="selectRole('admin')">
+          <div class="role-option-label" style="color:#7a6040">👑 Admin</div><div class="role-option-desc">Akses penuh</div>
+        </div>
+      </div>
+    </div>
+    <div id="au-err" style="display:none" class="error-box"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-gold btn-full btn-lg" onclick="doAddUser()">✓ BUAT AKUN</button>
+    </div>
+  </div>`);
+  window._selectedRole='user';
+}
+function selectRole(r){
+  window._selectedRole=r;
+  ['user','admin'].forEach(x=>{
+    const el=document.getElementById('role-'+x);
+    if(el){el.classList.toggle('selected',x===r);el.querySelector('.role-option-label').style.color=x===r?'#B8860B':'#7a6040';}
+  });
+}
+function toggleFieldPw(id,btn){
+  const inp=document.getElementById(id);
+  if(!inp) return;
+  const show=inp.type==='password';
+  inp.type=show?'text':'password';
+  inp.style.fontFamily=show?'Georgia,serif':'monospace';
+  inp.style.letterSpacing=show?'normal':'2px';
+  if(btn) btn.textContent=show?'🙈':'👁';
+}
+function doAddUser(){
+  const name=(document.getElementById('au-name')?.value||'').trim();
+  const username=(document.getElementById('au-user')?.value||'').trim();
+  const password=document.getElementById('au-pass')?.value||'';
+  const errEl=document.getElementById('au-err');
+  function showErr(m){if(errEl){errEl.textContent=m;errEl.style.display='block';}}
+  if(!name||!username||!password){showErr('Semua field wajib diisi.');return;}
+  if(password.length<4){showErr('Password minimal 4 karakter.');return;}
+  if(STATE.users.find(u=>u.username===username)){showErr('Username sudah digunakan.');return;}
+  const nu={id:Date.now().toString(),name,username,password,role:window._selectedRole||'user',createdAt:new Date().toISOString()};
+  STATE.users.push(nu);
+  save(KEYS.users, STATE.users);
+  closeModal();
+  renderAdmin();
+  showToast('User '+name+' berhasil ditambahkan');
+}
+
+// ── Edit User ──
+function showEditUser(uid){
+  const u = STATE.users.find(x=>x.id===uid);
+  if(!u) return;
+  const ac = STEP_COLORS[u.id.charCodeAt(0)%7];
+  openModal(`
+  <div class="modal-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="user-avatar-lg" style="background:${ac}22;border:2px solid ${ac}55;color:${ac}">${u.name.charAt(0).toUpperCase()}</div>
+      <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#B8860B;margin-bottom:2px">EDIT USER</div>
+      <div style="font-size:14px;font-weight:700;color:#f0e8d8">${u.name}</div></div>
+    </div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="font-family:monospace;font-size:9px;color:#B8860B;letter-spacing:2px;margin-bottom:12px">● INFORMASI AKUN</div>
+    <div class="form-group"><label class="form-label">Nama Lengkap</label><input id="eu-name" class="form-input" value="${u.name}"/></div>
+    <div class="form-group"><label class="form-label">Username</label><input id="eu-user" class="form-input mono" value="${u.username}"/></div>
+    <div class="form-group"><label class="form-label">Role</label>
+      <div class="role-picker" id="eu-role-picker">
+        <div class="role-option ${u.role==='user'?'selected':''}" id="eu-role-user" onclick="selectEditRole('user')">
+          <div class="role-option-label" style="color:${u.role==='user'?'#B8860B':'#7a6040'}">👤 User</div><div class="role-option-desc">Hanya isi data</div>
+        </div>
+        <div class="role-option ${u.role==='admin'?'selected':''}" id="eu-role-admin" onclick="selectEditRole('admin')">
+          <div class="role-option-label" style="color:${u.role==='admin'?'#B8860B':'#7a6040'}">👑 Admin</div><div class="role-option-desc">Akses penuh</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div style="font-family:monospace;font-size:9px;color:#1A7A6E;letter-spacing:2px;margin-bottom:12px">● GANTI PASSWORD <span style="color:#3d2e18;text-transform:none;letter-spacing:0;font-style:italic">(kosongkan jika tidak diganti)</span></div>
+    <div class="form-group"><label class="form-label">Password Baru</label>
+      <div class="pw-wrap"><input id="eu-pw1" class="form-input mono" type="password" placeholder="Min. 4 karakter" style="padding-right:40px" oninput="checkPwMatch()"/>
+      <button class="pw-toggle" onclick="toggleFieldPw('eu-pw1',this)">👁</button></div></div>
+    <div class="form-group"><label class="form-label">Konfirmasi Password Baru</label>
+      <div class="pw-wrap"><input id="eu-pw2" class="form-input mono" type="password" placeholder="Ulangi password baru" style="padding-right:40px" oninput="checkPwMatch()"/>
+      <button class="pw-toggle" onclick="toggleFieldPw('eu-pw2',this)">👁</button></div>
+      <div id="eu-pw-match" class="pw-match"></div>
+    </div>
+    <div id="eu-err" style="display:none" class="error-box"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-gold btn-full btn-lg" onclick="doEditUser('${uid}')">✓ SIMPAN PERUBAHAN</button>
+    </div>
+  </div>`);
+  window._editRole = u.role;
+}
+function selectEditRole(r){
+  window._editRole=r;
+  ['user','admin'].forEach(x=>{
+    const el=document.getElementById('eu-role-'+x);
+    if(el){el.classList.toggle('selected',x===r);el.querySelector('.role-option-label').style.color=x===r?'#B8860B':'#7a6040';}
+  });
+}
+function checkPwMatch(){
+  const p1=document.getElementById('eu-pw1')?.value||'';
+  const p2=document.getElementById('eu-pw2')?.value||'';
+  const el=document.getElementById('eu-pw-match');
+  if(!el||!p2) return;
+  el.textContent = p1===p2?'✓ Password cocok':'✕ Password tidak cocok';
+  el.style.color = p1===p2?'#1A7A6E':'#B22222';
+}
+function doEditUser(uid){
+  const name=(document.getElementById('eu-name')?.value||'').trim();
+  const username=(document.getElementById('eu-user')?.value||'').trim();
+  const pw1=document.getElementById('eu-pw1')?.value||'';
+  const pw2=document.getElementById('eu-pw2')?.value||'';
+  const errEl=document.getElementById('eu-err');
+  function showErr(m){if(errEl){errEl.textContent=m;errEl.style.display='block';}}
+  if(!name||!username){showErr('Nama dan username wajib diisi.');return;}
+  if(STATE.users.find(u=>u.username===username&&u.id!==uid)){showErr('Username sudah digunakan user lain.');return;}
+  if(pw1){
+    if(pw1.length<4){showErr('Password baru minimal 4 karakter.');return;}
+    if(pw1!==pw2){showErr('Konfirmasi password tidak cocok.');return;}
+  }
+  const idx=STATE.users.findIndex(u=>u.id===uid);
+  if(idx<0) return;
+  STATE.users[idx]={...STATE.users[idx],name,username,role:window._editRole||STATE.users[idx].role,...(pw1?{password:pw1}:{})};
+  // Update session if editing self
+  if(STATE.session?.id===uid){STATE.session={...STATE.session,name,username};save(KEYS.session,STATE.session);}
+  save(KEYS.users,STATE.users);
+  closeModal();
+  renderAdmin();
+  renderNav();
+  showToast('User '+name+' berhasil diupdate');
+}
+
+// ── Delete User ──
+function showDeleteUser(uid){
+  const u=STATE.users.find(x=>x.id===uid);
+  if(!u) return;
+  const projCount=STATE.projects.filter(p=>p.assignedTo?.includes(uid)).length;
+  openModal(`
+  <div class="modal-header" style="background:#1a0808;border-bottom:1px solid #3a1010">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#B22222;margin-bottom:2px">KONFIRMASI HAPUS</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Hapus Akun Pengguna</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div class="confirm-user-box">
+      <div class="user-avatar-lg" style="background:#B2222222;border:2px solid #B2222244;color:#B22222">${u.name.charAt(0).toUpperCase()}</div>
+      <div><div style="font-size:14px;color:#f0e8d8;font-weight:600">${u.name}</div>
+      <div style="font-family:monospace;font-size:9px;color:#7a4040">@${u.username} · ${u.role==='admin'?'Admin':'User'}</div></div>
+    </div>
+    <p style="font-size:12px;color:#c07070;line-height:1.6;margin-bottom:8px">
+      Tindakan ini <strong style="color:#ff8080">tidak dapat dibatalkan</strong>. Akun akan dihapus permanen.
+    </p>
+    ${projCount>0?`<div style="background:#1a1207;border:1px solid #B8860B44;border-radius:7px;padding:9px 12px;font-family:monospace;font-size:10px;color:#c0a030;margin-bottom:8px">⚠ User ini ada di ${projCount} proyek. Data proyek tidak ikut terhapus.</div>`:''}
+    <div class="modal-footer" style="margin-top:16px">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-red btn-full btn-lg" onclick="doDeleteUser('${uid}')">🗑 YA, HAPUS USER</button>
+    </div>
+  </div>`);
+}
+function doDeleteUser(uid){
+  STATE.users=STATE.users.filter(u=>u.id!==uid);
+  save(KEYS.users,STATE.users);
+  closeModal();
+  renderAdmin();
+  showToast('User berhasil dihapus');
+}
+
+// ═══════════════════════════════════════════════════
+// PDF PREVIEW & PRINT
+// ═══════════════════════════════════════════════════
+function buildPDFHtml(){
+  const p = getProject();
+  const d1 = (p.steps||{})[1]||{};
+
+  // Cover
+  const rainbow = STEP_COLORS.map(c=>`<div style="flex:1;height:6px;background:${c}"></div>`).join('');
+
+  let chaptersHtml = '';
+  STEPS.forEach(step=>{
+    const sd = (p.steps||{})[step.id]||{};
+    const narasi = (p.content||{})[step.id]||'';
+    const subTagsHtml = step.subs
+      ? step.subs.map(s=>`<span style="display:inline-block;padding:2px 10px;border-radius:10px;font-family:monospace;font-size:9px;border:1px solid ${step.color}44;background:${step.color}11;color:${step.color};margin:2px">${s}</span>`).join('')
+      : '';
+
+    // Build data summary table for this step
+    const dataRows = step.fields.slice(0,6).map(f=>{
+      const val = sd[f.key];
+      if(!val) return '';
+      return `<tr>
+        <td style="padding:5px 10px;font-size:10px;color:#5a4a30;font-family:monospace;white-space:nowrap;border-bottom:1px solid #f0ece4">${f.label}</td>
+        <td style="padding:5px 10px;font-size:11px;color:#1a1209;border-bottom:1px solid #f0ece4">${val}</td>
+      </tr>`;
+    }).filter(Boolean).join('');
+
+    chaptersHtml += `
+    <div style="padding:32px 40px;border-bottom:1px solid #e8e2d5;page-break-inside:avoid">
+      <!-- Chapter header -->
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:18px">
+        <div style="width:44px;height:44px;border-radius:10px;background:${step.color}18;border:1px solid ${step.color}44;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">${step.icon}</div>
+        <div style="flex:1">
+          <div style="font-family:monospace;font-size:9px;color:${step.color};letter-spacing:3px;margin-bottom:3px">BAB ${step.id} · LANGKAH ${step.id}</div>
+          <div style="font-size:18px;font-weight:700;color:#1a2744;margin-bottom:6px">${step.title}</div>
+          ${subTagsHtml?`<div>${subTagsHtml}</div>`:''}
+        </div>
+      </div>
+
+      ${dataRows?`
+      <!-- Data summary -->
+      <div style="margin-bottom:16px">
+        <div style="font-family:monospace;font-size:9px;color:${step.color};letter-spacing:2px;margin-bottom:8px">DATA INPUT</div>
+        <table style="width:100%;border-collapse:collapse;background:#faf7f2;border-radius:8px;overflow:hidden">
+          ${dataRows}
+        </table>
+      </div>`:''}
+
+      ${narasi?`
+      <!-- Narasi -->
+      <div>
+        <div style="font-family:monospace;font-size:9px;color:#a09070;letter-spacing:2px;margin-bottom:8px">NARASI</div>
+        ${narasi.split('\n\n').map(para=>`<p style="font-size:11px;line-height:1.85;color:#2a1f0e;text-align:justify;text-indent:1.5em;margin-bottom:10px;font-family:Georgia,serif">${para.replace(/\n/g,' ')}</p>`).join('')}
+      </div>`
+      :`<div style="font-family:monospace;font-size:10px;color:#c0a870;font-style:italic;padding:12px 0">Narasi belum di-generate untuk langkah ini.</div>`}
+
+      <!-- Bottom stripe -->
+      <div style="display:flex;height:2px;margin-top:20px">${rainbow}</div>
+    </div>`;
+  });
+
+  const doneBabs = Object.keys(p.content||{}).length;
+  const pct = Math.round(doneBabs/7*100);
+
+  return `
+  <!-- COVER -->
+  <div style="background:linear-gradient(135deg,#1a2744 0%,#0d1a3a 100%);padding:56px 48px 44px;text-align:center">
+    <div style="display:flex;margin-bottom:20px">${rainbow}</div>
+    <div style="font-family:monospace;font-size:10px;letter-spacing:5px;color:#B8860B;text-transform:uppercase;margin-bottom:14px">MAKALAH IMPROVEMENT QCC</div>
+    <h1 style="font-family:Georgia,serif;font-size:26px;color:#fff;margin:0 0 10px;line-height:1.3;font-weight:700">
+      ${p.name||'Makalah Improvement'}
+    </h1>
+    <div style="color:rgba(255,255,255,0.4);font-size:12px;margin-bottom:28px">
+      ${d1.area||''} ${d1.area&&d1.periode?'·':''} ${d1.periode||''}
+    </div>
+
+    <!-- Meta info -->
+    <div style="display:inline-block;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px 28px;text-align:left;min-width:300px">
+      ${[
+        ['Tema', d1.tema],['Baseline', d1.baseline],['Target', d1.goal],
+        ['Area', d1.area],['Periode', d1.periode]
+      ].filter(r=>r[1]).map(([k,v])=>`
+        <div style="display:flex;gap:12px;margin-bottom:8px;font-size:11px">
+          <span style="color:rgba(255,255,255,0.4);font-family:monospace;min-width:70px">${k}</span>
+          <span style="color:#f0e8d8;flex:1">${v}</span>
+        </div>`).join('')}
+    </div>
+
+    <!-- Progress -->
+    <div style="margin-top:24px">
+      <div style="font-family:monospace;font-size:9px;color:rgba(255,255,255,0.3);letter-spacing:2px;margin-bottom:6px">PROGRESS: ${doneBabs}/7 BAB (${pct}%)</div>
+      <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:5px;max-width:300px;margin:0 auto">
+        <div style="background:linear-gradient(90deg,#B8860B,#1A7A6E);height:5px;border-radius:3px;width:${pct}%"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;margin-top:20px">${rainbow}</div>
+  </div>
+
+  <!-- TABLE OF CONTENTS -->
+  <div style="padding:28px 40px;border-bottom:1px solid #e8e2d5">
+    <div style="font-family:Georgia,serif;font-size:18px;font-weight:700;color:#1a2744;margin-bottom:4px">Daftar Isi</div>
+    <div style="height:2px;background:linear-gradient(90deg,#B8860B,transparent);margin-bottom:16px"></div>
+    ${STEPS.map(s=>{
+      const isDone = !!(p.content||{})[s.id];
+      return `<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #f5f0e8">
+        <div style="width:28px;height:28px;border-radius:6px;background:${s.color}18;border:1px solid ${s.color}33;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0">${s.icon}</div>
+        <div style="font-family:monospace;font-size:9px;color:${s.color};width:50px;flex-shrink:0">BAB ${s.id}</div>
+        <div style="flex:1;font-size:12px;color:#1a1209">${s.title}</div>
+        <div style="font-family:monospace;font-size:9px;color:${isDone?'#1A7A6E':'#c0a030'}">${isDone?'✓ Selesai':'○ Belum'}</div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <!-- CHAPTERS -->
+  ${chaptersHtml}
+
+  <!-- FOOTER -->
+  <div style="padding:20px 40px;text-align:center;background:#faf7f2;border-top:1px solid #e8e2d5">
+    <div style="font-family:monospace;font-size:9px;color:#c0a870;letter-spacing:2px">
+      QCC PLATFORM · 7 LANGKAH IMPROVEMENT · ${new Date().toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'})}
+    </div>
+  </div>`;
+}
+
+function previewPDF(){
+  const overlay = document.getElementById('pdf-preview-overlay');
+  const doc = document.getElementById('pdf-doc');
+  if(!overlay||!doc) return;
+
+  doc.innerHTML = `
+    <!-- Close bar -->
+    <div class="pdf-close-bar">
+      <div style="display:flex;align-items:center;gap:10px">
+        <span style="font-size:18px">📄</span>
+        <div>
+          <div style="font-family:monospace;font-size:9px;color:#B8860B;letter-spacing:2px">PREVIEW MAKALAH</div>
+          <div style="font-size:13px;color:#fff;font-weight:600">${getProject().name||'Proyek'}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" style="background:linear-gradient(135deg,#B22222,#8a1a1a);color:#fff;padding:7px 16px;font-size:10px;font-family:monospace;letter-spacing:1.5px;font-weight:700" onclick="printPDF()">🖨 CETAK / SIMPAN PDF</button>
+        <button class="btn btn-ghost" style="padding:7px 14px;font-size:13px" onclick="closePDFPreview()">✕ TUTUP</button>
+      </div>
+    </div>
+    <!-- Document content -->
+    <div>${buildPDFHtml()}</div>`;
+
+  overlay.classList.add('show');
+  overlay.scrollTop = 0;
+}
+
+function closePDFPreview(){
+  document.getElementById('pdf-preview-overlay')?.classList.remove('show');
+}
+
+function printPDF(){
+  const overlay = document.getElementById('pdf-preview-overlay');
+  const doc = document.getElementById('pdf-doc');
+  if(!doc) return;
+
+  // Build content if not already previewed
+  if(!overlay?.classList.contains('show')){
+    doc.innerHTML = '<div>' + buildPDFHtml() + '</div>';
+    overlay?.classList.add('show');
+    setTimeout(()=>window.print(), 300);
+  } else {
+    window.print();
+  }
+}
+
+// Close preview on Escape key
+document.addEventListener('keydown', e=>{
+  if(e.key==='Escape') closePDFPreview();
+});
+
+// ═══════════════════════════════════════════════════
+// SYNC — encode/decode user list into shareable code
+// ═══════════════════════════════════════════════════
+function encodeUsers(users){
+  try{ return btoa(unescape(encodeURIComponent(JSON.stringify(users)))); }
+  catch{ return ''; }
+}
+function decodeUsers(code){
+  try{ return JSON.parse(decodeURIComponent(escape(atob(code.trim())))); }
+  catch{ return null; }
+}
+
+// Check URL for embedded sync code: ?sync=BASE64
+function checkURLSync(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('sync');
+    if(!code) return false;
+    const decoded = decodeUsers(code);
+    if(!decoded || !Array.isArray(decoded) || decoded.length===0) return false;
+    // Merge: keep existing users, add new ones from code
+    const existing = load(KEYS.users, []);
+    let merged = [...existing];
+    decoded.forEach(u=>{
+      if(!merged.find(x=>x.id===u.id)){
+        merged.push(u);
+      } else {
+        // Update existing user data (in case password changed)
+        merged = merged.map(x=>x.id===u.id ? {...x,...u} : x);
+      }
+    });
+    save(KEYS.users, merged);
+    // Clean URL
+    window.history.replaceState({}, document.title, window.location.pathname);
+    return true;
+  } catch(e){ return false; }
+}
+
+// Generate sync link for admin to share
+// ═══════════════════════════════════════════════════
+// EXPORT / IMPORT PROYEK antar perangkat
+// ═══════════════════════════════════════════════════
+function showExportProject(){
+  const projs = STATE.projects;
+  if(!projs.length){ showToast('Belum ada proyek untuk dibagikan','error'); return; }
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(projs))));
+  const link = window.location.origin + window.location.pathname + '?projects=' + code;
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#1A7A6E;margin-bottom:2px">BAGIKAN PROYEK KE USER</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Link Sinkronisasi Proyek</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="background:#071a12;border:1px solid #1A7A6E44;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-family:monospace;font-size:9px;color:#1A7A6E;letter-spacing:2px;margin-bottom:6px">💡 CARA PENGGUNAAN:</div>
+      <div style="font-size:11px;color:#5a8a70;line-height:1.7">
+        1. Klik <strong style="color:#c0f0d0">Salin Link</strong> di bawah<br>
+        2. Kirim ke user via WhatsApp/email<br>
+        3. User klik link → proyek otomatis muncul di dashboard<br>
+        4. User langsung bisa buka dan isi data proyek
+      </div>
+    </div>
+    <label class="form-label">Link Proyek (${projs.length} proyek)</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <input id="proj-sync-input" class="form-input mono" style="font-size:9px;letter-spacing:0"
+        value="${link}" readonly onclick="this.select()"/>
+      <button class="btn btn-gold" style="white-space:nowrap;padding:8px 14px;font-size:10px"
+        onclick="copyProjLink()">📋 Salin</button>
+    </div>
+    <div id="proj-copy-confirm" style="font-family:monospace;font-size:9px;color:#1A7A6E;margin-top:4px;display:none">✓ Link berhasil disalin!</div>
+    <div style="margin-top:14px;padding:10px 12px;background:#1a1207;border:1px solid #B8860B33;border-radius:8px;font-family:monospace;font-size:9px;color:#c0a030;line-height:1.7">
+      <strong>Proyek yang disertakan:</strong><br>
+      ${projs.map(p=>'• '+p.name+' ('+Object.keys(p.content||{}).length+'/7 BAB)').join('<br>')}
+    </div>
+  </div>`);
+}
+function copyProjLink(){
+  const inp = document.getElementById('proj-sync-input');
+  if(!inp) return;
+  navigator.clipboard?.writeText(inp.value).then(()=>{
+    const el=document.getElementById('proj-copy-confirm');
+    if(el){el.style.display='block';setTimeout(()=>el.style.display='none',3000);}
+  }).catch(()=>{inp.select();document.execCommand('copy');});
+}
+
+function showImportProject(){
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#1A7A6E;margin-bottom:2px">IMPORT PROYEK DARI ADMIN</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Tempel Kode Proyek</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="background:#071a12;border:1px solid #1A7A6E44;border-radius:10px;padding:12px 14px;margin-bottom:16px;font-family:monospace;font-size:10px;color:#5a8a70;line-height:1.6">
+      💡 Minta admin untuk klik <strong style="color:#c0f0d0">"🔗 Bagikan Proyek"</strong> lalu kirim link ke Anda.<br>
+      Atau tempel kode proyek di bawah ini:
+    </div>
+    <div class="form-group"><label class="form-label">Kode Proyek (dari Admin)</label>
+      <textarea id="import-code" class="form-input mono" rows="3" placeholder="Tempel kode atau link di sini..."
+        style="resize:vertical;font-size:10px;letter-spacing:0;line-height:1.5"></textarea></div>
+    <div id="import-err" style="display:none" class="error-box"></div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-full" onclick="closeModal()">BATAL</button>
+      <button class="btn btn-full btn-lg" style="background:linear-gradient(135deg,#1A7A6E,#0f5c52);color:#fff;border:none" onclick="doImportProject()">📥 IMPORT PROYEK</button>
+    </div>
+  </div>`);
+}
+function doImportProject(){
+  let raw = (document.getElementById('import-code')?.value||'').trim();
+  const errEl = document.getElementById('import-err');
+  function showErr(m){if(errEl){errEl.textContent=m;errEl.style.display='block';}}
+  // Support full URL or just the code
+  if(raw.includes('?projects=')) raw = raw.split('?projects=')[1].split('&')[0];
+  try{
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!Array.isArray(decoded)||decoded.length===0){ showErr('Kode tidak valid.'); return; }
+    let merged = [...STATE.projects];
+    let added = 0, updated = 0;
+    decoded.forEach(p=>{
+      const idx = merged.findIndex(x=>x.id===p.id);
+      if(idx<0){ merged.push(p); added++; }
+      else { merged[idx]={...merged[idx],...p}; updated++; }
+    });
+    STATE.projects = merged;
+    save(KEYS.projects, STATE.projects);
+    closeModal();
+    renderDashboard();
+    showToast((added?added+' proyek ditambahkan':'')+(updated?' '+updated+' diperbarui':''));
+  } catch(e){ showErr('Kode tidak valid atau sudah kadaluarsa. Minta link baru dari admin.'); }
+}
+
+// Check URL for project sync code
+function checkURLProjectSync(){
+  try{
+    const params = new URLSearchParams(window.location.search);
+    const code = params.get('projects');
+    if(!code) return false;
+    const decoded = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
+    if(!decoded||!Array.isArray(decoded)) return false;
+    let merged = [...load(KEYS.projects,[])];
+    let added=0, updated=0;
+    decoded.forEach(p=>{
+      const idx=merged.findIndex(x=>x.id===p.id);
+      if(idx<0){merged.push(p);added++;}
+      else{merged[idx]={...merged[idx],...p};updated++;}
+    });
+    save(KEYS.projects, merged);
+    window.history.replaceState({}, document.title, window.location.pathname);
+    if(added||updated) showToast((added?added+' proyek berhasil diimport':'')+(updated?' '+updated+' diperbarui':''));
+    return true;
+  } catch{ return false; }
+}
+
+function generateSyncLink(){
+  const users = load(KEYS.users,[]).filter(u=>u.id!=='admin');
+  if(users.length===0){ showToast('Belum ada user untuk di-sync','error'); return; }
+  const code = encodeUsers(users);
+  const link = window.location.origin + window.location.pathname + '?sync=' + code;
+  openModal(`
+  <div class="modal-header">
+    <div><div style="font-family:monospace;font-size:9px;letter-spacing:3px;color:#1A7A6E;margin-bottom:2px">BAGIKAN AKSES USER</div>
+    <div style="font-size:14px;font-weight:700;color:#f0e8d8">Link Sinkronisasi Otomatis</div></div>
+    <button class="btn btn-ghost" style="padding:4px 10px;font-size:13px" onclick="closeModal()">✕</button>
+  </div>
+  <div class="modal-body">
+    <div style="background:#071a12;border:1px solid #1A7A6E44;border-radius:10px;padding:14px 16px;margin-bottom:16px">
+      <div style="font-family:monospace;font-size:9px;color:#1A7A6E;letter-spacing:2px;margin-bottom:6px">💡 CARA PENGGUNAAN:</div>
+      <div style="font-size:11px;color:#5a8a70;line-height:1.7">
+        1. Klik <strong style="color:#c0f0d0">Salin Link</strong> di bawah<br>
+        2. Kirim link tersebut ke user via WhatsApp/email<br>
+        3. User buka link itu di browser mereka<br>
+        4. Data akun otomatis tersimpan, langsung bisa login<br>
+        <span style="color:#3a6a50">⚠ Link ini berisi semua data akun user (${users.length} user)</span>
+      </div>
+    </div>
+    <label class="form-label">Link Sinkronisasi</label>
+    <div style="display:flex;gap:8px;margin-bottom:4px">
+      <input id="sync-link-input" class="form-input mono" style="font-size:9px;letter-spacing:0" 
+        value="${link}" readonly onclick="this.select()"/>
+      <button class="btn btn-gold" style="white-space:nowrap;padding:8px 14px;font-size:10px" 
+        onclick="copySyncLink()">📋 Salin</button>
+    </div>
+    <div id="copy-confirm" style="font-family:monospace;font-size:9px;color:#1A7A6E;margin-top:6px;display:none">✓ Link berhasil disalin!</div>
+    <div style="margin-top:16px;padding:10px 12px;background:#1a1207;border:1px solid #B8860B33;border-radius:8px;font-family:monospace;font-size:9px;color:#c0a030;line-height:1.6">
+      <strong>User yang disertakan (${users.length}):</strong><br>
+      ${users.map(u=>`• ${u.name} (@${u.username})`).join('<br>')}
+    </div>
+  </div>`);
+}
+function copySyncLink(){
+  const inp = document.getElementById('sync-link-input');
+  if(!inp) return;
+  navigator.clipboard?.writeText(inp.value).then(()=>{
+    const el = document.getElementById('copy-confirm');
+    if(el){ el.style.display='block'; setTimeout(()=>el.style.display='none',3000); }
+  }).catch(()=>{ inp.select(); document.execCommand('copy'); });
+}
+
+// ═══════════════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════════════
+initState();
+
+// Process sync from URL first (users)
+const wasSynced = checkURLSync();
+if(wasSynced){
+  STATE.users = load(KEYS.users, []);
+  showToast('✓ Data akun berhasil disinkronkan!');
+}
+// Process project sync from URL
+checkURLProjectSync();
+STATE.projects = load(KEYS.projects, []);
+
+if(STATE.session){
+  const freshUsers = load(KEYS.users,[]);
+  const valid = freshUsers.find(u=>u.id===STATE.session.id&&u.password===STATE.session.password);
+  if(valid){ STATE.session=valid; STATE.users=freshUsers; navigate('dashboard'); }
+  else { STATE.session=null; save(KEYS.session,null); navigate('login'); }
+} else {
+  navigate('login');
+}
+</script>
+</body>
+</html>
